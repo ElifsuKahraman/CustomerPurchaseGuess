@@ -12,11 +12,12 @@ public class FormCustomerPurchase extends JFrame {
     private boolean fileSelected = false;
     private JTextArea textArea1;
     private JButton csvtoArffButton;
+    private JButton commentButton;
     private ReadFile readFile;
 
     public FormCustomerPurchase() {
         add(panel1);
-        setSize(400, 400);
+        setSize(600, 600);
         setTitle("Tahmin");
         setLocationRelativeTo(null);
         setVisible(true);
@@ -48,6 +49,7 @@ public class FormCustomerPurchase extends JFrame {
                     CreatingAlgorithm creatingAlgorithm = new CreatingAlgorithm(readFile);
                     try {
                         creatingAlgorithm.randomTree();
+                        creatingAlgorithm.comment();
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
@@ -66,6 +68,7 @@ public class FormCustomerPurchase extends JFrame {
                 }
             }
         });
+
     }
 
     public void setReadFile(ReadFile readFile) {
