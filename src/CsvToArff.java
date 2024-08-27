@@ -4,9 +4,6 @@ import weka.core.converters.ArffSaver;
 import weka.core.converters.CSVLoader;
 
     public class CsvToArff {
-        public CsvToArff() {
-        }
-
         public void file() throws Exception {
             CSVLoader loader = new CSVLoader();
             loader.setSource(new File("C:\\Users\\kelif\\Desktop\\musteri_tahmin.csv"));
