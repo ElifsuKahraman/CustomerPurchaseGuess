@@ -1,113 +1,106 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.util.Random;
+import java.text.DecimalFormat;
 import javax.swing.JOptionPane;
 import weka.classifiers.Evaluation;
-import weka.classifiers.trees.J48;
 import weka.classifiers.trees.RandomTree;
 import weka.core.Instance;
 import weka.core.Instances;
+
+
 
 public class CreatingAlgorithm {
     ReadFile readFile;
     Instances trainingData;
     Instances testData;
-    RandomTree randomTree;
-    Evaluation eval;
     double kappa;
-    double accuarcy;
+    double accuracy;
     double rmse;
-
-
-
+    Instances dataSet;
 
     public CreatingAlgorithm(ReadFile readFile) {
         this.readFile = readFile;
 
     }
 
-    public void modelCreation() throws Exception {
-
-            BufferedReader bufferedReader = new BufferedReader(new FileReader(readFile.file));
-            Instances data = new Instances(bufferedReader);
-            bufferedReader.close();
-            data.setClassIndex(data.numAttributes() - 1);
-            J48 j48Classifier = new J48();
-            Evaluation evaluation = new Evaluation(data);
-            evaluation.crossValidateModel(j48Classifier, data, 10, new Random(1L));
-            System.out.println(evaluation.toSummaryString("\nResults", false));
-
-
-        System.out.print("Successfully executed.");
-    }
-
     public void randomTree() throws Exception {
         BufferedReader bufferedReader = new BufferedReader(new FileReader(readFile.file));
-        Instances dataSet = new Instances(bufferedReader);
-        int trainSize = (int)Math.round((double)dataSet.numInstances() * 0.7);
+        dataSet = new Instances(bufferedReader);
+        int trainSize = (int) Math.round((double) dataSet.numInstances() * 0.7);
         int testSize = dataSet.numInstances() - trainSize;
         trainingData = new Instances(dataSet, 0, trainSize);
         trainingData.setClassIndex(trainingData.numAttributes() - 1);
         testData = new Instances(dataSet, trainSize, testSize);
         testData.setClassIndex(testData.numAttributes() - 1);
-        randomTree = new RandomTree();
-        randomTree.buildClassifier(trainingData);
 
-        for(int i = 0; i < testData.numInstances(); ++i) {
+        RandomTree randomTree = new RandomTree();
+        randomTree.buildClassifier(trainingData);
+        for (int i = 0; i < testData.numInstances(); ++i) {
             double actualClass = testData.instance(i).classValue();
-            String actual = testData.classAttribute().value((int)actualClass);
+            String actual = testData.classAttribute().value((int) actualClass);
             Instance newInts = testData.instance(i);
             double predRt = randomTree.classifyInstance(newInts);
-            String predString = testData.classAttribute().value((int)predRt);
+            String predString = testData.classAttribute().value((int) predRt);
             System.out.println(actual + " " + predString);
         }
-        eval = new Evaluation(trainingData);
+        Evaluation eval = new Evaluation(trainingData);
         eval.evaluateModel(randomTree, testData);
-        kappa = eval.kappa();
-        accuarcy=eval.pctCorrect();
-        rmse=eval.rootMeanSquaredError();
+        try {
+            if (eval.confusionMatrix() != null && eval.confusionMatrix().length > 0) {
+                kappa = eval.kappa();
+                accuracy = eval.pctCorrect();
+                rmse = eval.rootRelativeSquaredError();
+                JOptionPane.showMessageDialog(null, eval.toSummaryString("\n Değerlendirme Sonuçları: \n", false));
+                JOptionPane.showMessageDialog(null, eval.toMatrixString("=== Genel Karışıklık Matrisi ===\n"));
+            } else {
+                JOptionPane.showMessageDialog(null, "Hesaplama yapılamadı.Dosyanızı kontorl ediniz.");
+            }
 
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Dosya formatınız yanlış olabilir,hesap yapılamıyor!");
 
-        JOptionPane.showMessageDialog(null, eval.toSummaryString("\n Değerlendirme Sonuçları: \n", false));
-        JOptionPane.showMessageDialog(null, eval.toMatrixString("=== Genel Karışıklık Matrisi ===\n"));
+        }
     }
+
+
 
 
     public void comment() throws Exception {
-        String mesaj="";
-        JOptionPane pane=new JOptionPane();
-        if(kappa>=0.01 && kappa<=0.40  ){
-            mesaj+="Kappa: " + kappa +"\n" + "Zayıf Anlaşma";
-        }
-        else if(kappa>=0.41 && kappa<=0.60   ){
-            mesaj+="Kappa: " + kappa +"\n" + "Orta Anlaşma";
-        }
-        else if(kappa>=0.61 && kappa<=0.80 ){
-            mesaj+="Kappa: " + kappa +"\n" + "İyi Anlaşma";
-        }
-        else if(kappa>=0.81 && kappa<=1 ){
-            mesaj+="Kappa: " + kappa +"\n" + "Çok iyi Anlaşma";
-        }
-        else{
-            mesaj+="Kappa hesaplanamadı";
+        DecimalFormat df = new DecimalFormat("#.####");
+        String message = kappaComment(kappa,df)+accuracyComment(accuracy,df)+rmseComment(rmse,df);
+        JOptionPane.showMessageDialog(null, message);
+    }
+
+    public String kappaComment(double kappa, DecimalFormat df) {
+            if (kappa >= 0.01 && kappa <= 0.40) {
+                return "Kappa: " + df.format(kappa) + "--->" + "Zayıf Anlaşma";
+            } else if (kappa >= 0.41 && kappa <= 0.60) {
+                return "Kappa: " + df.format(kappa) + "--->" + "Orta Anlaşma";
+            } else if (kappa >= 0.61 && kappa <= 0.80) {
+                return "Kappa: " + df.format(kappa) + "--->" + "İyi Anlaşma";
+            } else if (kappa >= 0.81 && kappa <= 1) {
+                return "Kappa: " + df.format(kappa) + "--->" + "Çok iyi Anlaşma";
+            } else {
+                return "Kappa hesaplanamadı";
+            }
         }
 
-        if(accuarcy>=70){
-            mesaj+="Correctly Classified Instances: " + accuarcy +"\n" + "Kabul edilebilir.";
-
+    public String accuracyComment(double accuracy,DecimalFormat df) {
+        if (accuracy >= 70) {
+            return "\n" + "Correctly Classified Instances: " + df.format(accuracy) + "%" + "---" + "Kabul edilebilir.";
+        } else {
+            return "\n" + "Correctly Classified Instances: " + df.format(accuracy) + "%" + "---" + "Kabul edilemez.";
         }
-        else {
-            mesaj+="Correctly Classified Instances: " + accuarcy +"\n" + "Kabul edilemez.";
+    }
 
-        }
+    public String rmseComment(double rmse,DecimalFormat df) {
+        if (rmse <= 100) {
+            return "\n" + "Root Relative Squared Error: " + df.format(rmse) + "%" + "---" + "İyi bir modele yakın.";
 
-        if(rmse<=100){
-            mesaj+="Root Relative Squared Error: " + rmse +"\n" + "İyi bir modele yakın.";
-
+        } else {
+           return "\n" + "Root Relative Squared Error: " + df.format(rmse) + "%" + "---" + "Kötü model.";
         }
-        else{
-            mesaj+="Root Relative Squared Error: " + rmse +"\n" + "Kötü model.";
-        }
-        pane.showMessageDialog(null, mesaj);
     }
 }
+
