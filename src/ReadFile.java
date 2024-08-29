@@ -6,5 +6,5 @@ public class ReadFile {
         public ReadFile(File file) {
             this.file = file;
         }
-    }
+}
 
