@@ -11,11 +11,9 @@ public class FormCustomerPurchase extends JFrame {
     private File selectedFile;
     private boolean fileSelected = false;
     private JTextArea textArea1;
-    private JButton csvtoArffButton;
-    private JButton commentButton;
     private ReadFile readFile;
 
-    public FormCustomerPurchase() {
+    public FormCustomerPurchase(String[] args) {
         add(panel1);
         setSize(600, 600);
         setTitle("Tahmin");
@@ -36,6 +34,7 @@ public class FormCustomerPurchase extends JFrame {
                         JOptionPane.showMessageDialog(null, "Dosya başarıyla eklendi: " + selectedFile.getName());
                         fileSelected = true;
                         selectFileButton.setEnabled(false);
+                        setFile(selectedFile);
                     }
                 } else {
                     JOptionPane.showMessageDialog(null, "Zaten bir dosya seçildi. Sürükleyip bırakma yöntemi kullanılamaz.");
@@ -44,31 +43,31 @@ public class FormCustomerPurchase extends JFrame {
         });
         guessButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (selectedFile!=null) {
-                    ReadFile readFile = new ReadFile(selectedFile);
-                    CreatingAlgorithm creatingAlgorithm = new CreatingAlgorithm(readFile);
+                if (selectedFile != null) {
                     try {
+                        if (selectedFile.getName().endsWith(".csv")) {
+                            readFile = new ReadFile(selectedFile);
+                            CsvToArff csvToArff = new CsvToArff(readFile);
+                            csvToArff.file();
+                            JOptionPane.showMessageDialog(null,"Dosyanız .arff formatına dönüştürüldü.");
+                        } else if (selectedFile.getName().endsWith(".arff")) {
+                            readFile = new ReadFile(selectedFile);
+                        }else{
+                            JOptionPane.showMessageDialog(null,"Hata");
+                        }
+                        CreatingAlgorithm creatingAlgorithm = new CreatingAlgorithm(readFile);
                         creatingAlgorithm.randomTree();
                         creatingAlgorithm.comment();
+
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
-                } else {
+                }else{
                     JOptionPane.showMessageDialog(null, "Lütfen bir dosya seçin.");
                 }
             }
-        });
-        csvtoArffButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                CsvToArff csvToArff = new CsvToArff();
-                try {
-                    csvToArff.file();
-                } catch (Exception ex) {
-                    throw new RuntimeException(ex);
-                }
-            }
-        });
 
+        });
     }
 
     public void setReadFile(ReadFile readFile) {
