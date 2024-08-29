@@ -13,7 +13,7 @@ public class FormCustomerPurchase extends JFrame {
     private JTextArea textArea1;
     private ReadFile readFile;
 
-    public FormCustomerPurchase(String[] args) {
+    public FormCustomerPurchase() {
         add(panel1);
         setSize(600, 600);
         setTitle("Tahmin");
